@@ -1,0 +1,5 @@
+1、每次push都要输入密码的问题：
+	使用Git，每次都提示输入命令。 烦人的很
+	Enter passphrase for key 'xxxx'
+	输入一下命令：
+	ssh-add -k /home/pi/.ssh/id_rsa
