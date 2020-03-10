@@ -1,0 +1,152 @@
+1、代理
+	chromium-browser --proxy-server="192.168.43.1:40836"
+  	或者安装SwitchyShap插件
+
+2、输入法,中文字库安装和卸载
+sudo -i
+sudo apt-get install fcitx fcitx-googlepinyin fcitx-module-cloudpinyin fcitx-sunpinyin
+	sudo apt-get install scim-pinyin
+	sudo apt-get autoremove scim-pinyin
+	安装中文字库
+	sudo apt-get install ttf-wqy-zenhei
+	刷新字库缓存
+	输入代码 ：sudo fc-cache
+	进入语言配置界面
+	sudo dpkg-reconfigure locales
+
+3、树莓派默认更新源访问速度很慢，换成国内源速度会有很大提升。
+
+	网上常见的教程往往都是替换软件更新源（/etc/apt/sources.list），实际上还存在一个系统更新源（/etc/apt/sources.list.d/raspi.list）。我们对这两个文件进行修改，将其中的源网址更换为国内镜像站点即可。
+
+	备份原文件
+	命令行执行：
+
+	sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+	sudo cp /etc/apt/sources.list.d/raspi.list /etc/apt/sources.list.d/raspi.list.bak
+	修改文件
+	此处更换为中科大站点，地址如下：
+
+	http://mirrors.ustc.edu.cn/raspbian/raspbian/
+	http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/
+	先修改软件更新源，命令行执行：
+
+	sudo nano /etc/apt/sources.list
+	将文件首行中网址修改即可，修改后文件如下：
+
+	deb http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ jessie main non-free contrib
+	deb-src http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ jessie main non-free contrib
+	deb http://mirrors.ustc.edu.cn/raspbian/raspbian/ stretch main contrib non-free rpi
+	# Uncomment line below then 'apt-get update' to enable 'apt-get source'
+	#deb-src http://archive.raspbian.org/raspbian/ stretch main contrib non-free rpi
+	ctrl+o 保存，之后 回车 确认，然后 ctrl+x 退出。
+
+	再修改系统更新源，命令行执行：
+
+	sudo nano /etc/apt/sources.list.d/raspi.list
+	同样修改首行网址，修改后文件如下：
+
+	deb http://mirrors.ustc.edu.cn/archive.raspberrypi.org/debian/ stretch main ui
+	# Uncomment line below then 'apt-get update' to enable 'apt-get source'
+	#deb-src http://archive.raspberrypi.org/debian/ stretch main ui
+	ctrl+o 保存，之后 回车 确认，然后 ctrl+x 退出。
+
+	更新
+	配置完成后，便可以更新看看，命令行执行：
+
+	sudo apt-get update ; sudo apt-get upgrade ; sudo apt-get dist-upgrade ; ＃＃sudo rpi-update
+	此处为更新软件源列表、软件版本和内核版本，因为更新内容比较多，所以耗时长些，大概需要六分钟。
+
+4、如果您想让Raspberry Pi通过代理服务器(可能来自学校或其他工作场所)访问internet，那么您需要对Pi进行配置，以便在可以上网之前使用该服务器。
+	(1)在中端输入:本次终端可用！
+	export http_proxy=http://192.168.43.1:40836
+	export https_proxy=http://192.168.43.1:40836
+
+	$ export http_proxy=http://foo:bar@server-ip:port/
+	$ export http_proxy=http://foo:bar@127.0.0.1:3128/
+	$ export http_proxy=http://USERNAME:PASSWORD@proxy-server.mycorp.com:3128/
+	查看代理状态：
+	echo $http_proxy
+
+	（2）如果常用，你需要:
+	代理服务器的IP地址或主机名和端口
+	代理的用户名和密码
+	配置你的Pi
+	您需要设置三个环境变量(http_proxy、https_proxy和no_proxy)，以便Raspberry Pi知道如何访问代理服务器。
+
+	打开终端窗口，使用nano或者vim打开文件/etc/environment
+
+	sudo nano /etc/environment
+	在/etc/environment文件中添加以下内容以创建http_proxy变量:
+
+	export http_proxy = "http://proxyipaddress:proxyport"
+	用代理的IP地址和端口替换proxyipaddress和proxyport。
+
+	注意:如果您的代理需要用户名和密码，请使用以下格式添加它们
+
+	export http_proxy = "http://username:password@proxyipaddress:proxyport"
+	为环境变量https_proxy输入相同的信息:
+
+	export https_proxy = "http://username:password@proxyipaddress:proxyport"
+	创建no_proxy环境变量，它是Pi不应该使用的地址的逗号分隔的列表:
+
+	export no_proxy = "localhost,127.0.0.1"
+	您的/etc/environment文件现在应该是这样的:
+
+	export http_proxy="http://username:password@proxyipaddress:proxyport"
+	export https_proxy="http://username:password@proxyipaddress:proxyport"
+	export no_proxy="localhost, 127.0.0.1"
+	例如：
+	export http_proxy="192.168.43.1:40836"
+	export https_proxy="192.168.43.1:40836"
+	export no_proxy="localhost, 127.0.0.1"
+
+	保存然后退出
+
+	更新sudoers
+	为了使以sudo方式运行的操作(例如下载和安装软件)能够使用新的环境变量，您需要更新sudoers。
+
+	使用以下命令打开sudoers文件:
+
+	sudo visudo
+	将下面的行添加到文件中，这样sudo将使用您刚刚创建的环境变量:
+
+	Defaults env_keep+="http_proxy https_proxy no_proxy"
+	最后重启Raspberry Pi
+5、压力测试
+	sudo apt install stress
+
+	stress -c 4 -t 10m -v
+
+6、NordVPN连接时代理不可用的问题：
+	先不连接NordVPN
+	打开Proxy Server
+	打开手机热点
+	树莓派终端 ping 192.168.43.1
+	等到有回复后，手机上连接NordVPN
+	NordVPN连接好之后，Ctol^C终止ping 192.168.43.1，
+	OK！
+7、RaspBerry PI 安装NordVPN:
+	wget连接不了的话可以手动下载：https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb
+	sudo dpkg -i ./nordvpn-release_1.0.0_all.deb
+	sudo apt-get update
+	sudo apt --fix-broken install   （安装ip_set等组件）
+	sudo apt-get install nordvpn -y		（连接不了，手动下载下面的程序安装）
+	手动下载：https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn_3.6.1-1_armhf.deb
+	sudo dpkg -i ./nordvpn_3.6.1-1_armhf.deb
+	
+	使用：
+	nordvpn login
+	nordvpn set obfuscate on
+	nordvpn c
+	Connecting to Japan #2146 (jp2146.nordvpn.com)
+	You are connected to Japan #2146 (jp2146.nordvpn.com)!
+
+8、FTP 
+	sudo apt-get install filezilla
+	再装个语言包：sudo apt-get install filezilla-locales
+	安装完语言包就可以支持中文了
+	安装成功后，如果出现./filezilla/filezilla.xml、./filezilla/layout.xml等文件不允许些或者说不能够读，可能是权限问题。
+	然后，把这些文件赋予合适的权限就成功了。
+
+
+
